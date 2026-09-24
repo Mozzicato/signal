@@ -30,15 +30,17 @@ export default async function handler(request, response) {
   const reports = Array.isArray(request.body?.reports) ? request.body.reports.slice(0, 100) : [];
   if (!reports.length) return json(response, 400, { error: 'At least one report is required' });
 
-  const apiKey = process.env.XAI_API_KEY || process.env.GROK_API_KEY || process.env.XAI_KEY;
+  const groqKey = process.env.GROQ_API_KEY;
+  const apiKey = groqKey || process.env.XAI_API_KEY || process.env.GROK_API_KEY || process.env.XAI_KEY;
   if (!apiKey) return json(response, 200, fallback(reports));
 
   try {
-    const upstream = await fetch('https://api.x.ai/v1/chat/completions', {
+    const isGroq = Boolean(groqKey);
+    const upstream = await fetch(isGroq ? 'https://api.groq.com/openai/v1/chat/completions' : 'https://api.x.ai/v1/chat/completions', {
       method: 'POST',
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: process.env.XAI_MODEL || 'grok-3-mini',
+        model: process.env[isGroq ? 'GROQ_MODEL' : 'XAI_MODEL'] || (isGroq ? 'llama-3.3-70b-versatile' : 'grok-3-mini'),
         temperature: 0.1,
         response_format: { type: 'json_object' },
         messages: [
@@ -47,10 +49,10 @@ export default async function handler(request, response) {
         ]
       })
     });
-    if (!upstream.ok) throw new Error(`xAI returned ${upstream.status}`);
+    if (!upstream.ok) throw new Error(`${isGroq ? 'Groq' : 'xAI'} returned ${upstream.status}`);
     const payload = await upstream.json();
     const result = extractJson(payload.choices?.[0]?.message?.content || '');
-    return json(response, 200, { ...result, source: 'Grok' });
+    return json(response, 200, { ...result, source: isGroq ? 'Groq' : 'Grok' });
   } catch (error) {
     console.error('Analysis provider failed:', error.message);
     return json(response, 200, { ...fallback(reports), source: 'local heuristic fallback' });

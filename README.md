@@ -12,13 +12,13 @@ npm start
 
 Open `http://localhost:3000`.
 
-Load the Oke Road scenario, add reports, then run analysis. The analysis route uses Grok when `XAI_API_KEY` is configured and falls back to a local evidence heuristic when it is not.
+Load the Oke Road scenario, add reports, then run analysis. The analysis route uses Groq when `GROQ_API_KEY` is configured and falls back to a local evidence heuristic when it is not.
 
 Create `.env` from `.env.example`:
 
 ```env
-XAI_API_KEY=your-grok-api-key
-XAI_MODEL=grok-3-mini
+GROQ_API_KEY=your-groq-api-key
+GROQ_MODEL=llama-3.3-70b-versatile
 ```
 
 The key is used only server-side by `/api/analyze` and is never sent to the browser.
@@ -26,8 +26,8 @@ The key is used only server-side by `/api/analyze` and is never sent to the brow
 ## Vercel deployment
 
 1. Import this repository into [Vercel](https://vercel.com/new).
-2. Add `XAI_API_KEY` in the project Environment Variables.
-3. Optionally add `XAI_MODEL`.
+2. Add `GROQ_API_KEY` in the project Environment Variables.
+3. Optionally add `GROQ_MODEL`.
 4. Deploy with the default settings.
 
 Routes:
